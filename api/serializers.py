@@ -16,7 +16,7 @@ class RoomMovieSerializer(serializers.ModelSerializer):
         
 
 class RoomSerializer(serializers.ModelSerializer):
-    current_playing_movie = RoomMovieSerializer()
+    current_playing_movie = RoomMovieSerializer(read_only=True)
 
     class Meta:
         model = Room
@@ -46,10 +46,10 @@ class MovieCreateSerializer(RepresentSerializerMixin, serializers.ModelSerialize
         if start_time > end_time:
             raise serializers.ValidationError(WRONG_DURATION)
 
-        if Movie.objects.filter(start_time__lte=start_time, end_time__gte=end_time, room=room).exists():
+        if Movie.objects.filter(start_time__lte=start_time, end_time__gte=start_time, room=room).exists():
             raise serializers.ValidationError(MOVIE_EXIST)
 
-        if Movie.objects.filter(start_time__lte=start_time, end_time__gte=end_time, room=room).exists():
+        if Movie.objects.filter(start_time__lte=end_time, end_time__gte=end_time, room=room).exists():
             raise serializers.ValidationError(MOVIE_EXIST)
 
         return data
@@ -73,6 +73,8 @@ class TicketCreateSerializer(RepresentSerializerMixin, serializers.ModelSerializ
 
         if movie.remaining_tickets_count < quantity:
             raise serializers.ValidationError(INSUFFICIENT_TICKETS)
+
+        return data
 
     class Meta:
         model = Ticket
